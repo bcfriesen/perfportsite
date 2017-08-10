@@ -54,6 +54,9 @@ pages:
           - Parallelism: case_studies/amr/parallelism.md
           - Code Layout: case_studies/amr/code_layout.md
           - Geometric Multigrid: case_studies/amr/multigrid.md
+          - Porting:
+            - Kokkos: case_studies/amr/port_to_kokkos.md
+            - OpenMP 4.x: case_studies/amr/port_to_openmp.md
         - GW Kernels: case_studies/gw/index.md
         - QCD:
           - Overview: case_studies/qcd/overview.md
