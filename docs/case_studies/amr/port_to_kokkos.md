@@ -17,7 +17,7 @@ performance with a Kokkos implementation requires that the `Box` and `FAB`
 objects be ported (or at least become compatible) with the Kokkos containers,
 particularly the `View` object.
 
-# Fortran support
+## Rewriting Fortran kernels in C++
 
 Early on in the porting process we encountered significant challenges. The
 first was that Kokkos has no support for Fortran. This meant that all of the
@@ -128,3 +128,78 @@ void C_AVERAGE(const Box* bx,
       }
 }
 ```
+
+## Implementing execution spaces
+
+After we ported all of the multigrid kernels to C++, we could then start adding
+Kokkos to BoxLib. The simplest modification was to add Kokkos execution spaces
+to each kernel. We accomplished this by converting each kernel from a regular C++ function to a functor, which Kokkos uses in its execution spaces.
+The restriction kernel above became the following:
+
+```C++
+struct C_AVERAGE_Functor {
+    // Data used by the loop body
+    FArrayBox* c;
+    FArrayBox* f;
+
+    // Constructor to initialize the data
+    C_AVERAGE_Functor(FArrayBox* c_, const FArrayBox* f_){
+        c=c_;
+        f=const_cast<FArrayBox*>(f_);
+    }
+
+    // Loop body as an operator
+    KOKKOS_INLINE_FUNCTION
+    void operator() (const int& n, const int& k, const int& j, const int& i) const {
+
+      (*c)(IntVect(i,j,k),n) =  ((*f)(IntVect(2*i+1,2*j+1,2*k),n) +
+                                 (*f)(IntVect(2*i,2*j+1,2*k),n) +
+                                 (*f)(IntVect(2*i+1,2*j,2*k),n) +
+                                 (*f)(IntVect(2*i,2*j,2*k),n))*0.125;
+
+      (*c)(IntVect(i,j,k),n) += ((*f)(IntVect(2*i+1,2*j+1,2*k+1),n) +
+                                 (*f)(IntVect(2*i,2*j+1,2*k+1),n) +
+                                 (*f)(IntVect(2*i+1,2*j,2*k+1),n) +
+                                 (*f)(IntVect(2*i,2*j,2*k+1),n))*0.125;
+    }
+};
+
+void C_AVERAGE(
+  const Box& bx,
+  const int nc,
+  FArrayBox& c,
+  const FArrayBox& f){
+
+    const int *lo = bx.loVect();
+    const int *hi = bx.hiVect();
+
+    typedef Kokkos::Experimental::MDRangePolicy
+      <Kokkos::Experimental::Rank
+        <4,Kokkos::Experimental::Iterate::Right,Kokkos::Experimental::Iterate::Right>
+      >
+      t_policy;
+
+    // Create a functor
+    C_AVERAGE_Functor ave_functor(&c,&f);
+    // Execute functor
+    Kokkos::Experimental::md_parallel_for(t_policy({0,lo[2],lo[1],lo[0]},
+                                                   {nc,hi[2]+1,hi[1]+1,hi[0]+1},
+                                                   {1,4,4,1024000}),
+                                          ave_functor);
+}
+```
+
+Implementing functors in this way enabled these kernels to execute on CPUs
+without requiring the `View` container. However, the performance was
+substantially lower than the native C++ or Fortran kernels, and furthermore,
+these kernels could not execute on accelerators because Kokkos can migrate data
+between host and accelerator only with a `View`. Our next task, then was to
+implement `View`s in BoxLib.
+
+
+## Implementing `View`s
+
+Changing the fundamental data container in BoxLib from FABs to Kokkos `View`s
+was a formidable undertaking, and we enjoyed only partial success, even after
+considerable effort.
+##(GET DETAILS FROM ZAHRA AND THORSTEN)
