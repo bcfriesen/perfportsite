@@ -164,3 +164,40 @@ loop over the x-dimension, and then constructs a second RAJA loop:
 
 This approach is similar to the [Kokkos implementation](kokkos_implementation)
 of the GSRB kernel.
+
+
+## Porting the memory model
+
+Porting codes to the RAJA execution model is the first step in a two-step
+process to enabling portable execution across different architectures. Because
+the execution model does not change the way memory is allocated or placed,
+simply changing "native" C++ loops to the RAJA execution model as shown above
+does not enable the code to execute on, e.g., a GPU, where memory must migrate
+between the host and accelerator memory. To enable host-device managed memory,
+one must combine the RAJA execution model with a memory model; this can be
+accomplished via the [CHAI](https://github.com/LLNL/CHAI) code. In CHAI one can
+declare "managed" arrays which are automatically migrated between CPU and GPU,
+depending on the requested execution policy of the loop, e.g.,
+
+```C++
+  chai::ManagedArray<float> v1(10), v2(10);
+  // initialize v1
+  #if defined(RAJA_ENABLE_CUDA)
+  RAJA::forall<RAJA::cuda_exec<16> >(0, 10, [=] __device__ (int i) {
+      v2[i] = v1[i]*2.0f;
+  });
+  #else
+  RAJA::forall<RAJA::omp_for_exec >(0, 10, [=] (int i) {
+      v2[i] = v1[i]*2.0f;
+  });
+  #endif
+```
+In this example (which is included with RAJA as one of the CHAI integration
+tests), the managed array `v2` is computed either on the GPU, if CUDA is
+enabled, or the CPU with OpenMP, if CUDA is not enabled.
+
+Implementing CHAI-managed arrays in BoxLib follows pattern similar to that of
+Kokkos `View`s, and consequently requires the same changes to the code
+infrastructure. This procedure is documented extensively in the [memory
+management](kokkos_implementation/#memory-management) section of the
+BoxLib+Kokkos case study.
