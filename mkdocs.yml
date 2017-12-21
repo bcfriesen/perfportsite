@@ -61,6 +61,7 @@ pages:
           - Geometric Multigrid: case_studies/amr/multigrid.md
           - Implementations:
             - Kokkos: case_studies/amr/kokkos_implementation.md
+            - RAJA: case_studies/amr/raja_implementation.md
             - OpenMP 4.x: case_studies/amr/openmp_implementation.md
           - Performance: case_studies/amr/performance_comparison.md
         - BGW: 
