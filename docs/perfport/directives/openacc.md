@@ -91,6 +91,10 @@ $ module load craype-accel-nvidia35
 $ ftn -h acc vecAdd.f90 -o vecAdd.out
 ```
 
+### NERSC
+
+The PGI compilers are provided on the [Cori GPU
+nodes](https://docs-dev.nersc.gov/cgpu) at NERSC via the `pgi` modules.
 
 ## Benefits and Challenges
 
