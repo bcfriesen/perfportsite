@@ -40,18 +40,18 @@ Much more detail can be found at:
 |construct             | important clauses  | description |
 |:---|:---|---:|
 |``$acc parallel``
-|    |num_gangs(expression)| Controls how many parallel gangs are created
-|    |num_workers(expression)| Controls how many workers are created in each gang
-|    |vector_length(list)| Controls vector length of each worker
-|    |private(list)| A copy of each variable in list is allocated to each gang
-|    |firstprivate(list)| private variables initialized from host
-|    |reduction(operator:list)| private variables combined across gangs
+|    |`num_gangs(expression)`| Controls how many parallel gangs are created
+|    |`num_workers(expression)`| Controls how many workers are created in each gang
+|    |`vector_length(list)`| Controls vector length of each worker
+|    |`private(list)`| A copy of each variable in list is allocated to each gang
+|    |`firstprivate(list)`| private variables initialized from host
+|    |`reduction(operator:list)`| private variables combined across gangs
 |``$acc kernels`` |  |  |
-| | copy(list)| Allocates memory on GPU and copies data from host to GPU when entering region and copies data to the host when exiting region
-| | copyin(list) | Allocates memory on GPU and copies data from host to GPU when entering region
-| | copyout(list) |  Allocates memory on GPU and copies data to the host when exiting region
-| | create(list) | Allocates memory on GPU but does not copy
-| | present(list) | Data is already present on GPU from another containing data region
+| | `copy(list)`| Allocates memory on GPU and copies data from host to GPU when entering region and copies data to the host when exiting region
+| | `copyin(list)` | Allocates memory on GPU and copies data from host to GPU when entering region
+| | `copyout(list)` |  Allocates memory on GPU and copies data to the host when exiting region
+| | `create(list)` | Allocates memory on GPU but does not copy
+| | `present(list)` | Data is already present on GPU from another containing data region
 
 ## How to use OpenACC on ASCR facilities
 
